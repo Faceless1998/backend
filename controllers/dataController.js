@@ -1,13 +1,24 @@
 // controllers/dataController.js
 
-const Data = require('../models/dataModel');
+const Data = require("../models/dataModel");
 
 exports.createData = async (req, res) => {
   try {
-    const { name, value } = req.body;
-    const imageUrl = `/uploads/${req.file.filename}`;
-    const newData = new Data({ name, value, imageUrl });
-    await newData.save();
+    const { name, price, category, status, properties } = req.body;
+    const photo = `/uploads/${req.file.filename}`;
+
+    const parseProperties = JSON.parse(properties);
+
+    const newData = new Data({
+      name,
+      price,
+      category,
+      status,
+      photo,
+      properties: parseProperties,
+    });
+
+    await newData.save();    
     res.status(201).json(newData);
   } catch (error) {
     res.status(400).json({ message: error.message });

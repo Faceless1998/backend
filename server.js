@@ -1,28 +1,39 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
 const cors = require('cors');
-const multer = require('multer');
-require('dotenv').config();
-
-const dataRoutes = require('./routes/dataRoutes'); // Import your route
+const dataRoutes = require('./routes/dataRoutes');
+const path = require('path');
+require('dotenv').config(); // Load environment variables from .env file
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
-app.use(express.json());
-app.use('/uploads', express.static('uploads'));
+app.use(cors()); // Enable CORS for all routes
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// Serve static files from the "uploads" directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI, {
+const mongoURI = process.env.MONGO_URI;
+if (!mongoURI) {
+  console.error("Error: MongoDB connection string is not defined in the environment variables.");
+  process.exit(1); // Exit the application with a failure code
+}
 
-}).then(() => {
-  console.log('Connected to MongoDB');
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
-}).catch(err => console.log(err));
+mongoose
+  .connect(mongoURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.log("Error connecting to MongoDB:", err));
 
-// Use your route
-app.use('/', dataRoutes); // Adjust if your route path is different
+// Routes
+app.use('/api/data', dataRoutes);
+
+// Start the server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
