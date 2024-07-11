@@ -14,16 +14,10 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// MongoDB connection
-const mongoURI = process.env.MONGO_URI;
-mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.error('MongoDB connection error:', err));
-
 // Multer storage configuration for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/'); // adjust the destination as needed
+    cb(null, 'uploads/'); // Ensure 'uploads/' directory exists
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + '-' + file.originalname);
@@ -38,7 +32,7 @@ const dataSchema = new mongoose.Schema({
   price: Number,
   category: String,
   status: String,
-  photo: String, // Assuming photo is stored as a string (file path or URL)
+  photo: String, // Store file path here
   properties: [{ key: String, value: String }]
 });
 
@@ -48,7 +42,7 @@ const Data = mongoose.model('Data', dataSchema);
 app.post('/api/data', upload.single('photo'), async (req, res) => {
   try {
     const { name, price, category, status, properties } = req.body;
-    const photo = req.file ? req.file.path : ''; // Assuming Multer is used for file upload
+    const photo = req.file ? req.file.filename : ''; // Save filename to database
 
     const newData = new Data({
       name,
@@ -56,7 +50,7 @@ app.post('/api/data', upload.single('photo'), async (req, res) => {
       category,
       status,
       photo,
-      properties: JSON.parse(properties) // Assuming properties are sent as a JSON string
+      properties: JSON.parse(properties)
     });
 
     await newData.save();
