@@ -2,66 +2,38 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const multer = require('multer');
+const dataRoutes = require('./routes/dataRoutes');
 const path = require('path');
-require('dotenv').config();
+require('dotenv').config(); // Load environment variables from .env file
 
 const app = express();
-const port = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors()); // Enable CORS for all routes
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Multer storage configuration for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/'); // Ensure 'uploads/' directory exists
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
-});
+// Serve static files from the "uploads" directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-const upload = multer({ storage: storage });
+// MongoDB connection
+const mongoURI = process.env.MONGO_URI;
+if (!mongoURI) {
+  console.error("Error: MongoDB connection string is not defined in the environment variables.");
+  process.exit(1); // Exit the application with a failure code
+}
 
-// MongoDB Schema and Model setup
-const dataSchema = new mongoose.Schema({
-  name: String,
-  price: Number,
-  category: String,
-  status: String,
-  photo: String, // Store file path here
-  properties: [{ key: String, value: String }]
-});
+mongoose
+  .connect(mongoURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.log("Error connecting to MongoDB:", err));
 
-const Data = mongoose.model('Data', dataSchema);
+// Routes
+app.use('/api/data', dataRoutes);
 
-// POST endpoint for creating new data
-app.post('/api/data', upload.single('photo'), async (req, res) => {
-  try {
-    const { name, price, category, status, properties } = req.body;
-    const photo = req.file ? req.file.filename : ''; // Save filename to database
-
-    const newData = new Data({
-      name,
-      price,
-      category,
-      status,
-      photo,
-      properties: JSON.parse(properties)
-    });
-
-    await newData.save();
-    res.status(201).json(newData);
-  } catch (err) {
-    console.error('Error creating data:', err);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
-
-// Start server
-app.listen(port, () => {
-  console.log(`Server is running on port: ${port}`);
-});
+// Start the server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
