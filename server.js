@@ -3,12 +3,12 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const dataRoutes = require('./routes/dataRoutes');
-require('dotenv').config();
+require('dotenv').config(); // Load environment variables from .env file
 
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors()); // Enable CORS for all routes
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -16,16 +16,16 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const mongoURI = process.env.MONGO_URI;
 if (!mongoURI) {
   console.error("Error: MongoDB connection string is not defined in the environment variables.");
-  process.exit(1);
+  process.exit(1); // Exit the application with a failure code
 }
 
 mongoose
-  .connect(mongoURI)
+  .connect(mongoURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => console.log("MongoDB connected"))
-  .catch((err) => {
-    console.error("Error connecting to MongoDB:", err);
-    process.exit(1);
-  });
+  .catch((err) => console.log("Error connecting to MongoDB:", err));
 
 // Routes
 app.use('/api/data', dataRoutes);

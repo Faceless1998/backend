@@ -1,11 +1,9 @@
-// models/dataModel.js
-
 const mongoose = require('mongoose');
 
-const propertyScheme = new mongoose.Schema({
+const propertySchema = new mongoose.Schema({
   name: { type: String, required: true },
   value: { type: String, required: true },
-})
+});
 
 const dataSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -13,7 +11,7 @@ const dataSchema = new mongoose.Schema({
   category: { type: String, required: true },
   status: { type: String, required: true },
   photo: { type: String, required: true },
-  properties: [propertyScheme],
-},{collection: 'fruits'});
+  properties: [propertySchema],
+}, { collection: 'fruits' }); // Optional: Specify collection name if different from default
 
 module.exports = mongoose.model('Data', dataSchema);
