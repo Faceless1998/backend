@@ -9,7 +9,11 @@ require('dotenv').config(); // Load environment variables from .env file
 const app = express();
 
 // Middleware
-app.use(cors()); // Enable CORS for all routes
+app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:3000', // Replace with your frontend URL
+  credentials: true, // if you need to allow credentials (cookies, authorization headers, etc.)
+}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 

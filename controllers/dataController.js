@@ -18,10 +18,11 @@ exports.createData = async (req, res) => {
       properties: parseProperties,
     });
 
-    await newData.save();    
+    await newData.save();
     res.status(201).json(newData);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error("Error creating data:", error);
+    res.status(500).json({ message: "Failed to create data." });
   }
 };
 
