@@ -14,6 +14,12 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.use((err, req, res, next) => {
+  console.error(err.stack); // Log the error stack trace for debugging
+  res.status(500).json({ error: 'Internal Server Error' }); // Send a generic error response
+});
+
+
 // Serve static files from the 'uploads' directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
